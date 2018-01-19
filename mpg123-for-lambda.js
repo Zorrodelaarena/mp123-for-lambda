@@ -102,7 +102,7 @@ exports.convertMp3ToWav = function (options) {
 				if (result.size < 1) {
 					finalCallback(new Error('outputFile was empty. check stdout and stderr for details'), result);
 				} else {
-					finalCallback(err, result);
+					finalCallback(null, result);
 				}
 			});
 		}
