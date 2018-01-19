@@ -54,7 +54,7 @@ exports.convertMp3ToWav = function (options) {
 		return;
 	}
 
-	if (!options.output) {
+	if (!options.outputFile) {
 		result.outputFile = tmp.fileSync({ discardDescriptor: true, postfix: '.wav' }).name;
 	} else {
 		result.outputFile = options.outputFile;
