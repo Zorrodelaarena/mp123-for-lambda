@@ -50,7 +50,7 @@ exports.convertMp3ToWav = function (options) {
 
 	// do this check before creating an output file
 	if (!options.inputFile || !fs.existsSync(options.inputFile)) {
-		finalCallback(new Error('input.inputFile not set or not found'), result);
+		finalCallback(new Error('inputFile not set or not found'), result);
 		return;
 	}
 
@@ -96,7 +96,7 @@ exports.convertMp3ToWav = function (options) {
 		function (callback) {
 			result.mpg123Command = mpg123Path + ' ' + shellescape(mpg123Parameters);
 			child_process.exec(result.mpg123Command, function (error, stdout, stderr) {
-				result.size = fs.statSync(outputFile).size;
+				result.size = fs.statSync(result.outputFile).size;
 				result.stdout = stdout;
 				result.stderr = stderr;
 				if (result.size < 1) {
