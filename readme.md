@@ -1,11 +1,13 @@
-﻿Wraps mpg123 for ease of use in converting mp3s to wavs in AWS Lambda functions using node.js
+﻿# MPG123 For Lambda
+ 
+ Wraps mpg123 for ease of use in converting mp3s to wavs in AWS Lambda functions using node.js
 
-To install
+# Installation
 ```
 npm install https://github.com/Zorrodelaarena/mpg123-for-lambda.git
 ```
 
-To use
+# Use
 ```
 var mpg123 = require('mpg123');
 
