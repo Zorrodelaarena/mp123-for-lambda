@@ -1,0 +1,18 @@
+{
+  "name": "mpg123-for-lambda",
+  "version": "0.0.1",
+  "description": "Wraps mpg123 for ease of use in converting mp3s to wavs in AWS Lambda functions using node.js",
+  "main": "mpg123-for-lambda.js",
+  "author": {
+    "name": "Ryan Cramer"
+  },
+  "keywords": [
+    "mpg123",
+    "lambda"
+  ],
+  "dependencies": {
+    "async": "^2.6.0",
+    "shell-escape": "^0.2.0",
+    "tmp": "0.0.33"
+  }
+}

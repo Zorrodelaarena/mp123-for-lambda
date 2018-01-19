@@ -1,0 +1,1 @@
+﻿Wraps mpg123 for ease of use in converting mp3s to wavs in AWS Lambda functions using node.js
