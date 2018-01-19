@@ -9,25 +9,13 @@ var mpg123Path = '';
 
 /**
  * @typedef {Object} Mpg123Options
- * @property {?function} callback receives the results after finish
- * @property {InputParameters} input information about the input file
- * @property {OutputParameters} output information about the output file
- */
-
-/**
- * @typedef {Object} InputParameters
- * @property {string} path to the file
- */
-
-/**
- * @typedef {Object} OutputParameters
- * @property {?string} path to output file. if not specified, one will be generated
- * @property {?string} postfix if set and path is not, the generated file will end in this
+ * @property {?function} callback on completion, will be called with (err, {Mpg123Result} result)
+ * @property {string} inputFile path to input file
+ * @property {?string} outputFile path to the output file. if not specified, one will be generated
  */
 
 /**
  * @typedef {Object} Mpg123Result
- * @property {Error} error set if there was an error
  * @property {int} size filesize of output file
  * @property {string} outputFile path to output file
  * @property {string} stdout stdout from mpg123
@@ -38,12 +26,10 @@ var mpg123Path = '';
 /**
  * Runs mpg123
  * @param {Mpg123Options} options
- * @returns {Mpg123Result}
  */
-exports.mpg123 = function (options) {
+exports.convertMp3ToWav = function (options) {
 
 	var result = {
-		error: null,
 		size: 0,
 		outputFile: '',
 		stdout: '',
@@ -62,41 +48,33 @@ exports.mpg123 = function (options) {
 
 	var mpg123Parameters = ['-w'];
 
-	if (!options.output || (!options.output.path && !options.output.postfix)) {
-		result.error = new Error('output.path and output.postfix not set');
-		finalCallback(result);
+	// do this check before creating an output file
+	if (!options.inputFile || !fs.existsSync(options.inputFile)) {
+		finalCallback(new Error('input.inputFile not set or not found'), result);
 		return;
 	}
-	if (!options.output.path) {
-		result.outputFile = tmp.fileSync({ discardDescriptor: true, postfix: options.output.postfix }).name;
+
+	if (!options.output) {
+		result.outputFile = tmp.fileSync({ discardDescriptor: true, postfix: '.wav' }).name;
 	} else {
-		result.outputFile = options.output.path;
+		result.outputFile = options.outputFile;
 	}
 	mpg123Parameters.push(result.outputFile);
-
-	if (!options.input || !options.input.path || !fs.existsSync(options.input.path)) {
-		result.error = new Error('input.path not set or not found');
-		finalCallback(result);
-		return;
-	}
-	if (options.input.parameters && Array.isArray(options.input.parameters)) {
-		mpg123Parameters = mpg123Parameters.concat(options.input.parameters);
-	}
-	mpg123Parameters.push(options.input.path);
+	
+	mpg123Parameters.push(options.inputFile);
 
 	async.waterfall([
 		// make sure we have mpg123 somewhere we can run it
 		function (callback) {
 			if (!mpg123Path || !fs.existsSync(mpg123Path)) {
-				var newmpg123Path = tmp.fileSync({ discardDescriptor: true, prefix: 'mpg123-' }).name;
-				child_process.exec('cp ' + __dirname + '/bin/mpg123 ' + newmpg123Path, function (error, stdout, stderr) {
+				var newMpg123Path = tmp.fileSync({ discardDescriptor: true, prefix: 'mpg123-' }).name;
+				child_process.exec('cp ' + __dirname + '/bin/mpg123 ' + newMpg123Path, function (error, stdout, stderr) {
 					if (error) {
 						result.stdout = stdout;
 						result.stderr = stderr;
-						result.error = new Error('Failed to copy mpg123 to ' + newmpg123Path);
-						finalCallback(result);
+						finalCallback(new Error('Failed to copy mpg123 to ' + newMpg123Path), result);
 					} else {
-						mpg123Path = newmpg123Path;
+						mpg123Path = newMpg123Path;
 						callback(null);
 					}
 				});
@@ -108,8 +86,7 @@ exports.mpg123 = function (options) {
 		function (callback) {
 			fs.chmod(mpg123Path, 0777, function (err) {
 				if (err) {
-					result.error = err;
-					finalCallback(result);
+					finalCallback(err, result);
 				} else {
 					callback(null);
 				}
@@ -123,9 +100,10 @@ exports.mpg123 = function (options) {
 				result.stdout = stdout;
 				result.stderr = stderr;
 				if (result.size < 1) {
-					result.error = new Error('outputFile was empty. check stdout and stderr for details');
+					finalCallback(new Error('outputFile was empty. check stdout and stderr for details'), result);
+				} else {
+					finalCallback(err, result);
 				}
-				finalCallback(result);
 			});
 		}
 	]);
